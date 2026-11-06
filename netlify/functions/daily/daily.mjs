@@ -11,11 +11,12 @@ const TZ = "America/Los_Angeles";
 const EPOCH = Date.UTC(2026, 10, 6) / 864e5;  // Pacific date of Daily #1 (6 Nov 2026)
 // Set DAILY_SECRET in Netlify's environment variables. It never goes in the code: anyone holding it could
 // work out every future daily. Without it the daily stays switched off.
-const SECRET = process.env.DAILY_SECRET;
+// Read per request: Netlify exposes it through Netlify.env in current functions, process.env in older ones.
+const secret = () => globalThis.Netlify?.env?.get("DAILY_SECRET") || process.env.DAILY_SECRET;
 const COOKIE = "cmq_daily";
 const DAY_MS = 864e5;
 
-const hmac = s => createHmac("sha256", SECRET).update(s).digest("base64url");
+const hmac = s => createHmac("sha256", secret()).update(s).digest("base64url");
 
 // Pacific calendar date of a moment, as whole days since 1970 (DST-safe).
 function pacificDay(ms) {
@@ -93,7 +94,7 @@ const json = (body, status = 200, headers = {}) => new Response(JSON.stringify(b
 });
 
 export default async (req) => {
-  if (!SECRET) return json({ error: "daily not configured" }, 503);
+  if (!secret()) return json({ error: "daily not configured" }, 503);
   const url = new URL(req.url);
   const sub = url.pathname.replace(/^\/api\/daily\/?/, "").split("/").filter(Boolean);
   const day = pacificDay(Date.now());
