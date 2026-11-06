@@ -1,0 +1,9 @@
+[build]
+  publish = "."
+
+# The daily challenge's server code lives under netlify/; never serve it as a static file.
+[[redirects]]
+  from = "/netlify/*"
+  to = "/404"
+  status = 404
+  force = true

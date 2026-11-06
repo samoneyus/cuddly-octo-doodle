@@ -1,0 +1,1030 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CoD Map Quiz</title>
+<style>
+  :root {
+    --bg: #0d0f0c;
+    --panel: #161a14;
+    --panel-2: #1d2219;
+    --line: #2c3326;
+    --text: #e6eadf;
+    --muted: #8d977f;
+    --accent: #c6f432;
+    --accent-ink: #12160a;
+    --good: #5fd068;
+    --bad: #ef5b4c;
+    --warn: #f2b33d;
+    --radius: 10px;
+    --mono: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 15px/1.45 "Segoe UI", system-ui, -apple-system, sans-serif;
+    min-height: 100vh;
+  }
+  button, input, select { font: inherit; color: inherit; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 20px 16px 48px; }
+
+  header.top {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding-bottom: 14px; border-bottom: 1px solid var(--line); margin-bottom: 20px;
+  }
+  .brand { display: flex; align-items: baseline; gap: 10px; }
+  .brand h1 { margin: 0; font-size: 20px; letter-spacing: .08em; text-transform: uppercase; }
+  .brand span { color: var(--muted); font-family: var(--mono); font-size: 12px; }
+  #home-btn { margin-left: auto; }
+  .hud { display: flex; gap: 18px; font-family: var(--mono); font-size: 13px; color: var(--muted); }
+  .hud b { color: var(--text); font-weight: 600; }
+
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 18px; }
+  h2 { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin: 0 0 12px; font-weight: 600; }
+
+  /* Setup */
+  .setup { display: grid; grid-template-columns: 1.4fr 1fr; gap: 16px; }
+  .games { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 6px; }
+  .game-opt {
+    display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 7px;
+    background: var(--panel-2); border: 1px solid transparent; cursor: pointer; user-select: none;
+  }
+  .game-opt:hover { border-color: var(--line); }
+  .game-opt input { accent-color: var(--accent); }
+  .game-opt .yr { font-family: var(--mono); color: var(--muted); font-size: 12px; margin-left: auto; }
+  .game-opt .n { font-family: var(--mono); color: var(--muted); font-size: 11px; }
+  .row-actions { display: flex; gap: 8px; margin: 10px 0 0; }
+  .seg { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+  .seg label { cursor: pointer; }
+  .seg input { position: absolute; opacity: 0; pointer-events: none; }
+  .seg span {
+    display: inline-block; padding: 7px 12px; border-radius: 7px; background: var(--panel-2);
+    border: 1px solid var(--line); font-size: 14px;
+  }
+  .seg input:checked + span { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+  .seg input:focus-visible + span { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .hint { color: var(--muted); font-size: 13px; margin: -8px 0 18px; }
+
+  /* Home */
+  .modes { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .mode-card {
+    display: flex; flex-direction: column; padding: 0; text-align: left; cursor: pointer; overflow: hidden;
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
+  }
+  .mode-card:hover { border-color: var(--accent); }
+  .mode-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .mode-art {
+    position: relative; aspect-ratio: 16 / 9; border-bottom: 1px solid var(--line);
+    background:
+      linear-gradient(var(--line) 1px, transparent 1px) 0 0 / 40px 40px,
+      linear-gradient(90deg, var(--line) 1px, transparent 1px) 0 0 / 40px 40px,
+      radial-gradient(circle at 50% 50%, #1b2117, #0b0d0a 75%);
+  }
+  .mode-art img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 12px; }
+  .mode-art.wide img { object-fit: cover; padding: 0; }
+  .mode-body { padding: 16px 18px 18px; }
+  .mode-body h3 { margin: 0 0 4px; font-size: 18px; letter-spacing: .08em; text-transform: uppercase; }
+  .mode-body p { margin: 0 0 10px; color: var(--muted); }
+  .mode-body .n { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+
+  .btn {
+    border: 1px solid var(--line); background: var(--panel-2); padding: 8px 14px; border-radius: 7px; cursor: pointer;
+  }
+  .btn:hover { border-color: var(--muted); }
+  .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 700; letter-spacing: .04em; }
+  .btn.primary:hover { filter: brightness(1.07); }
+  .btn.small { padding: 4px 10px; font-size: 13px; }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+  .start { width: 100%; padding: 13px; font-size: 16px; text-transform: uppercase; }
+
+  /* Quiz */
+  .quiz { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 16px; align-items: start; }
+  .mapframe {
+    position: relative; aspect-ratio: 1 / 1; border-radius: var(--radius); overflow: hidden;
+    border: 1px solid var(--line);
+    background:
+      linear-gradient(var(--line) 1px, transparent 1px) 0 0 / 40px 40px,
+      linear-gradient(90deg, var(--line) 1px, transparent 1px) 0 0 / 40px 40px,
+      radial-gradient(circle at 50% 50%, #1b2117, #0b0d0a 75%);
+  }
+  .mapframe img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; padding: 14px; }
+  .mapframe.wide { aspect-ratio: 16 / 9; }
+  .mapframe.wide img { object-fit: cover; padding: 0; }
+  .mapframe .tag {
+    position: absolute; left: 10px; top: 10px; font-family: var(--mono); font-size: 12px;
+    background: rgba(0,0,0,.6); padding: 3px 8px; border-radius: 5px; color: var(--muted);
+  }
+  .mapframe .size-tag {
+    position: absolute; right: 10px; top: 10px; font-size: 12px; font-weight: 700; letter-spacing: .04em;
+    background: rgba(0,0,0,.7); padding: 3px 9px; border-radius: 5px; border: 1px solid currentColor;
+  }
+  .size-tag.gunfight { color: #f2b33d; }
+  .size-tag.core { color: #c6f432; }
+  .size-tag.large { color: #6fb7ff; }
+  .seg .cnt { font-family: var(--mono); font-size: 11px; opacity: .7; margin-left: 4px; }
+  .progress { height: 4px; background: var(--panel-2); border-radius: 2px; overflow: hidden; margin-bottom: 14px; }
+  .progress i { display: block; height: 100%; background: var(--accent); transition: width .25s; }
+
+  .q { margin-bottom: 18px; }
+  .q h3 { margin: 0 0 8px; font-size: 13px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+  .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .choice {
+    text-align: left; padding: 10px 12px; border-radius: 7px; background: var(--panel-2);
+    border: 1px solid var(--line); cursor: pointer; display: flex; gap: 8px; align-items: baseline;
+  }
+  .choice:hover:not(:disabled) { border-color: var(--muted); }
+  .choice .k { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .choice.sel { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+  .choice.right { border-color: var(--good); background: color-mix(in srgb, var(--good) 16%, var(--panel-2)); }
+  .choice.wrong { border-color: var(--bad); background: color-mix(in srgb, var(--bad) 16%, var(--panel-2)); }
+  .choice:disabled { cursor: default; }
+  .text-in, select.text-in {
+    width: 100%; padding: 10px 12px; border-radius: 7px; background: var(--panel-2);
+    border: 1px solid var(--line); outline: none;
+  }
+  .text-in:focus { border-color: var(--accent); }
+  .text-in.right { border-color: var(--good); }
+  .text-in.wrong { border-color: var(--bad); }
+  .text-in.close { border-color: var(--warn); }
+  .given {
+    padding: 10px 12px; border-radius: 7px; border: 1px dashed var(--line);
+    font-weight: 600; font-size: 17px;
+  }
+  .yr-inline { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-left: auto; }
+
+  .feedback { border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; background: var(--panel-2); border-left: 3px solid var(--muted); }
+  .feedback.all { border-left-color: var(--good); }
+  .feedback.half { border-left-color: var(--warn); }
+  .feedback.none { border-left-color: var(--bad); }
+  .feedback .ans { font-size: 18px; font-weight: 700; }
+  .feedback .sub { color: var(--muted); font-size: 13px; }
+  .feedback a { color: var(--muted); }
+  .actions { display: flex; gap: 8px; justify-content: space-between; align-items: center; }
+  .kbd { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+
+  /* Results */
+  .results-head { display: flex; flex-wrap: wrap; gap: 16px; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .bigscore { font-size: 44px; font-weight: 800; line-height: 1; }
+  .bigscore small { font-size: 16px; color: var(--muted); font-weight: 500; }
+  .stats { display: flex; gap: 22px; font-family: var(--mono); font-size: 13px; color: var(--muted); }
+  .stats b { display: block; font-size: 20px; color: var(--text); }
+  .review { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 10px; }
+  .card { background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .card .thumb { aspect-ratio: 1; background: #0b0d0a; }
+  .card img { width: 100%; height: 100%; object-fit: contain; padding: 6px; }
+  .card .thumb.wide { aspect-ratio: 16 / 9; }
+  .card .thumb.wide img { object-fit: cover; padding: 0; }
+  .card .meta { padding: 8px 10px; font-size: 13px; }
+  .card .meta b { display: block; }
+  .card .meta .you { color: var(--bad); font-size: 12px; }
+  .card .meta .g { color: var(--muted); font-size: 12px; }
+  /* Daily */
+  .daily-card {
+    display: flex; align-items: center; gap: 18px; width: 100%; margin-bottom: 16px; padding: 16px 18px; text-align: left;
+    background: var(--panel); border: 1px solid var(--accent); border-radius: var(--radius); cursor: pointer;
+  }
+  .daily-card:hover:not(:disabled) { background: var(--panel-2); }
+  .daily-card:disabled { border-color: var(--line); cursor: default; }
+  .daily-card:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .daily-card h3 { margin: 0 0 4px; font-size: 18px; letter-spacing: .08em; text-transform: uppercase; }
+  .daily-card h3 em { font-style: normal; color: var(--accent); font-family: var(--mono); font-size: 14px; margin-left: 6px; }
+  .daily-card p { margin: 0; color: var(--muted); }
+  .daily-card .go { margin-left: auto; white-space: nowrap; }
+  .squares { display: flex; gap: 5px; }
+  .squares i { width: 22px; height: 22px; border-radius: 4px; background: var(--panel-2); border: 1px solid var(--line); }
+  .squares.big i { width: 44px; height: 44px; border-radius: 7px; }
+  .squares i.now { border-color: var(--accent); }
+  .squares i.green { background: var(--good); border-color: var(--good); }
+  .squares i.yellow { background: var(--warn); border-color: var(--warn); }
+  .squares i.red { background: var(--bad); border-color: var(--bad); }
+  .daily-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+  .daily-head h2 { margin: 0; }
+  .feedback.green { border-left-color: var(--good); }
+  .feedback.yellow { border-left-color: var(--warn); }
+  .feedback.red { border-left-color: var(--bad); }
+  .daily-done { text-align: center; }
+  .daily-done .squares { justify-content: center; margin: 6px 0 14px; }
+  .daily-done .stats { justify-content: center; margin: 16px 0; }
+  .daily-done .next { font-family: var(--mono); color: var(--muted); font-size: 13px; margin-top: 12px; }
+  .daily-done .review { text-align: left; margin-top: 20px; }
+  .card .meta .ok { color: var(--good); font-size: 12px; }
+  .card .meta .half { color: var(--warn); font-size: 12px; }
+  .card.green { border-color: var(--good); }
+  .card.yellow { border-color: var(--warn); }
+  .card.red { border-color: var(--bad); }
+
+  .credit { margin-top: 28px; color: var(--muted); font-size: 12px; }
+  .credit a { color: var(--muted); }
+
+  [hidden] { display: none !important; }
+
+  @media (max-width: 760px) {
+    .setup, .quiz, .modes { grid-template-columns: minmax(0, 1fr); }
+    .daily-card { flex-wrap: wrap; }
+    .daily-card .go { margin-left: 0; }
+    .choices { grid-template-columns: 1fr; }
+    .hud { gap: 10px; }
+    .brand span { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><h1 id="brand-title">CoD Map Quiz</h1><span id="pool-count"></span></div>
+    <button class="btn small" id="home-btn" hidden>← Modes</button>
+    <div class="hud" id="hud" hidden>
+      <div>Q <b id="hud-q"></b></div>
+      <div>Score <b id="hud-score"></b></div>
+      <div>Streak <b id="hud-streak"></b></div>
+      <button class="btn small" id="quit">Quit</button>
+    </div>
+  </header>
+
+  <!-- Home -->
+  <section id="screen-home">
+    <button class="daily-card" id="daily-card" disabled>
+      <div>
+        <h3>Daily Challenge<em id="daily-no"></em></h3>
+        <p id="daily-blurb">5 minimaps, the same for everyone. New maps at midnight Pacific.</p>
+      </div>
+      <div class="squares" id="daily-preview"></div>
+      <span class="btn primary go" id="daily-go">Play</span>
+    </button>
+    <div class="modes">
+      <button class="mode-card" data-mode="minimap">
+        <div class="mode-art"><img id="art-minimap" alt=""></div>
+        <div class="mode-body">
+          <h3>Minimap</h3>
+          <p>Name the map, and the game, from its top-down layout.</p>
+          <span class="n" id="n-minimap"></span>
+        </div>
+      </button>
+      <button class="mode-card" data-mode="loading">
+        <div class="mode-art wide"><img id="art-loading" alt=""></div>
+        <div class="mode-body">
+          <h3>Loading Screen</h3>
+          <p>Name the map, and the game, from its loading screen.</p>
+          <span class="n" id="n-loading"></span>
+        </div>
+      </button>
+    </div>
+  </section>
+
+  <!-- Setup -->
+  <section id="screen-setup" class="setup" hidden>
+    <div class="panel">
+      <h2>Games</h2>
+      <div class="games" id="game-list"></div>
+      <div class="row-actions">
+        <button class="btn small" data-preset="all">All</button>
+        <button class="btn small" data-preset="none">None</button>
+        <button class="btn small" data-preset="treyarch">Black Ops / Treyarch</button>
+        <button class="btn small" data-preset="mw">Modern Warfare</button>
+        <button class="btn small" data-preset="ww2">WWII era</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div id="pool-pick">
+        <h2>Maps</h2>
+        <div class="seg">
+          <label><input type="radio" name="pool" value="launch" checked><span>Launch maps</span></label>
+          <label><input type="radio" name="pool" value="all"><span>Every map</span></label>
+        </div>
+        <p class="hint">Launch maps are the ones each game shipped with, the same list the minimap quiz uses. Every map adds seasonal and post-launch maps.</p>
+      </div>
+      <div id="size-pick">
+        <h2>Map sizes</h2>
+        <div class="seg" id="size-seg"></div>
+        <p class="hint">Each picture also shows its size as a hint in the corner.</p>
+      </div>
+      <h2>What to guess</h2>
+      <div class="seg">
+        <label><input type="radio" name="ask" value="both" checked><span>Map + game</span></label>
+        <label><input type="radio" name="ask" value="map"><span>Map only (game shown)</span></label>
+        <label><input type="radio" name="ask" value="game"><span>Game only (map shown)</span></label>
+      </div>
+      <h2>Answer style</h2>
+      <div class="seg">
+        <label><input type="radio" name="mode" value="mc" checked><span>Multiple choice</span></label>
+        <label><input type="radio" name="mode" value="type"><span>Type the map name</span></label>
+      </div>
+      <p class="hint">One point for each thing you guess. If a map appeared in more than one Call of Duty, any of those titles counts. Typed map names that are close or only partly right get half credit.</p>
+      <h2>Questions</h2>
+      <div class="seg" id="count-seg">
+        <label><input type="radio" name="count" value="10" checked><span>10</span></label>
+        <label><input type="radio" name="count" value="25"><span>25</span></label>
+        <label><input type="radio" name="count" value="50"><span>50</span></label>
+        <label><input type="radio" name="count" value="all"><span>All (<em id="all-n"></em>)</span></label>
+      </div>
+      <button class="btn primary start" id="start">Start quiz</button>
+    </div>
+  </section>
+
+  <!-- Quiz -->
+  <section id="screen-quiz" hidden>
+    <div class="progress"><i id="bar"></i></div>
+    <div class="quiz">
+      <div class="mapframe" id="mm-frame"><img id="mm" alt="Map to identify"><div class="tag" id="mm-tag"></div><div class="size-tag" id="mm-size"></div></div>
+      <div class="panel">
+        <div class="q">
+          <h3 id="map-h">Map name</h3>
+          <div id="map-answer"></div>
+        </div>
+        <div class="q">
+          <h3 id="game-h">Call of Duty title</h3>
+          <div id="game-answer"></div>
+        </div>
+        <div class="feedback" id="feedback" hidden></div>
+        <div class="actions">
+          <span class="kbd" id="keys-hint"></span>
+          <button class="btn primary" id="submit">Lock in</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Daily -->
+  <section id="screen-daily" hidden>
+    <div class="daily-head">
+      <h2 id="d-title"></h2>
+      <div class="squares" id="d-squares"></div>
+    </div>
+    <div class="quiz" id="d-play">
+      <div class="mapframe"><img id="d-img" alt="Map to identify"><div class="tag" id="d-tag"></div></div>
+      <div class="panel">
+        <div class="q">
+          <h3>Map name</h3>
+          <input class="text-in" id="d-map" list="d-names" autocomplete="off" spellcheck="false" placeholder="Type the map name…">
+          <datalist id="d-names"></datalist>
+        </div>
+        <div class="q">
+          <h3>Call of Duty title</h3>
+          <select class="text-in" id="d-game"></select>
+        </div>
+        <div class="feedback" id="d-feedback" hidden></div>
+        <div class="actions">
+          <span class="kbd">One guess per map · Enter</span>
+          <button class="btn primary" id="d-submit">Lock in</button>
+        </div>
+      </div>
+    </div>
+    <div class="panel daily-done" id="d-done" hidden>
+      <div class="bigscore" id="d-score"></div>
+      <div class="squares big" id="d-final"></div>
+      <button class="btn primary" id="d-share">Share result</button>
+      <div class="stats" id="d-stats"></div>
+      <div class="next" id="d-next"></div>
+      <div class="review" id="d-review"></div>
+    </div>
+  </section>
+
+  <!-- Results -->
+  <section id="screen-results" hidden>
+    <div class="panel">
+      <div class="results-head">
+        <div class="bigscore" id="final-score"></div>
+        <div class="stats" id="final-stats"></div>
+        <div style="display:flex;gap:8px">
+          <button class="btn" id="retry-missed">Retry missed</button>
+          <button class="btn primary" id="again">New quiz</button>
+        </div>
+      </div>
+      <h2 id="review-title">Missed</h2>
+      <div class="review" id="review"></div>
+    </div>
+  </section>
+
+  <p class="credit">Minimap images and map lists come from the
+    <a href="https://callofduty.fandom.com/" target="_blank" rel="noopener">Call of Duty Fandom wiki</a> (CC BY-SA).
+    Base-release multiplayer maps only. The wiki has no minimaps for Call of Duty 2 or Call of Duty 3.
+    Loading screens come from the map pictures on the wiki's
+    <a href="https://callofduty.fandom.com/wiki/Maps" target="_blank" rel="noopener">Maps</a> page, DLC and seasonal maps included.</p>
+</div>
+
+<script src="data.js"></script>
+<script src="loading.js"></script>
+<script>
+(() => {
+  // Each mode is its own image set with its own saved lobby settings; the quiz flow is shared.
+  const MODES = {
+    minimap: { data: window.MAPS || [], title: "Minimap Pop Quiz", store: "mmq:", wide: false,
+               from: "Minimap", src: "wiki" },
+    loading: { data: window.LOADING || [], title: "Loading Screen Quiz", store: "lsq:", wide: true,
+               from: "Loading screen", src: "wiki", pools: true },
+  };
+  let M = null, MAPS = [];
+  // Modes with pools let the lobby choose launch maps only or every map.
+  const inLaunchPool = m => !M.pools || radio("pool") === "all" || m.launch;
+  const inPool = m => inLaunchPool(m) && checkedSizes().includes(m.size || "core");
+  // Map size classes from the wiki: Gunfight/Face Off, standard 6v6, and Ground War-style large maps.
+  const SIZES = [["gunfight", "Gunfight", "2v2 / 3v3"], ["core", "6v6", "standard"], ["large", "Large", "Ground War / 10v10+"]];
+  const SIZE_LABEL = Object.fromEntries(SIZES.map(([k, l]) => [k, l]));
+  const checkedSizes = () => [...document.querySelectorAll("#size-seg input:checked")].map(i => i.value);
+  // Every mainline title, in release order. CoD 2/3 have no minimaps, so the minimap quiz only uses them
+  // in the "also" lists (e.g. Carentan); the loading screen quiz offers them like any other game.
+  const TITLES = [
+    ["Call of Duty", "Call of Duty", 2003],
+    ["Call of Duty 2", "Call of Duty 2", 2005],
+    ["Call of Duty 3", "Call of Duty 3", 2006],
+    ["Call of Duty 4: Modern Warfare", "CoD 4: Modern Warfare", 2007],
+    ["Call of Duty: World at War", "World at War", 2008],
+    ["Call of Duty: Modern Warfare 2", "Modern Warfare 2", 2009],
+    ["Call of Duty: Black Ops", "Black Ops", 2010],
+    ["Call of Duty: Modern Warfare 3", "Modern Warfare 3", 2011],
+    ["Call of Duty: Black Ops II", "Black Ops II", 2012],
+    ["Call of Duty: Ghosts", "Ghosts", 2013],
+    ["Call of Duty: Advanced Warfare", "Advanced Warfare", 2014],
+    ["Call of Duty: Black Ops III", "Black Ops III", 2015],
+    ["Call of Duty: Infinite Warfare", "Infinite Warfare", 2016],
+    ["Call of Duty: WWII", "WWII", 2017],
+    ["Call of Duty: Black Ops 4", "Black Ops 4", 2018],
+    ["Call of Duty: Modern Warfare (2019)", "Modern Warfare", 2019],
+    ["Call of Duty: Black Ops Cold War", "Black Ops Cold War", 2020],
+    ["Call of Duty: Vanguard", "Vanguard", 2021],
+    ["Call of Duty: Modern Warfare II", "Modern Warfare II", 2022],
+    ["Call of Duty: Modern Warfare III", "Modern Warfare III", 2023],
+    ["Call of Duty: Black Ops 6", "Black Ops 6", 2024],
+    ["Call of Duty: Black Ops 7", "Black Ops 7", 2025],
+    ["Call of Duty: Modern Warfare 4", "Modern Warfare 4", 2026],
+  ];
+  const SHORT = Object.fromEntries(TITLES.map(([t, s]) => [t, s]));
+  const YEAR = Object.fromEntries(TITLES.map(([t, , y]) => [t, y]));
+  const short = g => SHORT[g] || g.replace(/^Call of Duty:?\s*/, "");
+  const label = g => `${short(g)} (${YEAR[g]})`;
+  const validGames = item => item.games || [item.game];
+  const PRESETS = {
+    treyarch: g => /World at War|Black Ops/.test(g),
+    mw: g => /Modern Warfare/.test(g),
+    ww2: g => g === "Call of Duty" || /World at War|WWII|Vanguard/.test(g),
+  };
+
+  // Game list in release order.
+  const gamesOf = data => [...new Map(data.map(m => [m.game, m.year])).entries()]
+    .sort((a, b) => a[1] - b[1]).map(([name, year]) => ({ name, year, n: data.filter(m => m.game === name).length }));
+
+  const $ = id => document.getElementById(id);
+  const store = {
+    get(k, d) { try { const v = localStorage.getItem(M.store + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+    set(k, v) { try { localStorage.setItem(M.store + k, JSON.stringify(v)); } catch {} },
+  };
+  const radio = name => document.querySelector(`input[name=${name}]:checked`).value;
+
+  /* ---------- home ---------- */
+  for (const [key, mode] of Object.entries(MODES)) {
+    const pick = mode.data[Math.floor(Math.random() * mode.data.length)];
+    if (pick) $("art-" + key).src = pick.img;
+    $("n-" + key).textContent = `${mode.data.length} maps · ${gamesOf(mode.data).length} games`;
+  }
+  document.querySelectorAll(".mode-card").forEach(b => b.addEventListener("click", () => enterMode(b.dataset.mode)));
+
+  function goHome() {
+    M = null;
+    $("brand-title").textContent = "CoD Map Quiz";
+    $("pool-count").textContent = "";
+    show("home");
+  }
+
+  /* ---------- setup ---------- */
+  function enterMode(key) {
+    M = MODES[key];
+    MAPS = M.data;
+    ALL_NAMES = [...new Set(MAPS.map(m => norm(m.map)))];
+    const games = gamesOf(MAPS);
+    const savedGames = new Set(store.get("games", games.map(g => g.name)));
+    $("game-list").innerHTML = games.map(g => `
+      <label class="game-opt">
+        <input type="checkbox" value="${esc(g.name)}" ${savedGames.has(g.name) ? "checked" : ""}>
+        <span>${esc(short(g.name))} <span class="n">· <span data-n>${g.n}</span></span></span>
+        <span class="yr">${g.year}</span>
+      </label>`).join("");
+    $("brand-title").textContent = M.title;
+    $("pool-count").textContent = `${MAPS.length} maps · ${games.length} games`;
+    $("mm-frame").classList.toggle("wide", M.wide);
+    $("pool-pick").hidden = !M.pools;
+    // Size chips are always rendered (all on) so filtering works, but only shown when the mode has a real
+    // mix of sizes; the minimap quiz is core maps plus one 10v10 map.
+    const savedSizes = store.get("sizes", SIZES.map(([k]) => k));
+    $("size-seg").innerHTML = SIZES.map(([k, l, d]) => `
+      <label title="${d}"><input type="checkbox" value="${k}" ${savedSizes.includes(k) ? "checked" : ""}><span>${l}<em class="cnt" data-size-n="${k}"></em></span></label>`).join("");
+    const mixed = SIZES.filter(([k]) => MAPS.filter(m => (m.size || "core") === k).length >= 5).length > 1;
+    $("size-pick").hidden = !mixed;
+    if (!mixed) $("size-seg").querySelectorAll("input").forEach(i => i.checked = true);
+    for (const [name, def] of [["pool", "launch"], ["ask", "both"], ["mode", "mc"], ["count", "10"]]) {
+      document.querySelector(`input[name=${name}][value="${store.get(name, def)}"]`)?.click();
+    }
+    show("setup");
+    refreshSetup();
+  }
+
+  const checkedGames = () => [...document.querySelectorAll("#game-list input:checked")].map(i => i.value);
+  function refreshSetup() {
+    document.querySelectorAll("#game-list input").forEach(i => {
+      i.closest(".game-opt").querySelector("[data-n]").textContent = MAPS.filter(m => m.game === i.value && inPool(m)).length;
+    });
+    const pool = MAPS.filter(m => inPool(m) && checkedGames().includes(m.game));
+    $("all-n").textContent = pool.length;
+    $("start").disabled = pool.length === 0;
+    document.querySelectorAll("[data-size-n]").forEach(el => {
+      el.textContent = MAPS.filter(m => (m.size || "core") === el.dataset.sizeN && inLaunchPool(m) && checkedGames().includes(m.game)).length;
+    });
+    store.set("games", checkedGames());
+    if (!$("size-pick").hidden) store.set("sizes", checkedSizes());
+  }
+  $("game-list").addEventListener("change", refreshSetup);
+  $("size-seg").addEventListener("change", refreshSetup);
+  document.querySelectorAll("input[name=pool]").forEach(i => i.addEventListener("change", () => {
+    store.set("pool", radio("pool"));
+    refreshSetup();
+  }));
+  document.querySelectorAll("[data-preset]").forEach(b => b.addEventListener("click", () => {
+    const p = b.dataset.preset;
+    document.querySelectorAll("#game-list input").forEach(i => {
+      i.checked = p === "all" ? true : p === "none" ? false : PRESETS[p](i.value);
+    });
+    refreshSetup();
+  }));
+
+  /* ---------- quiz state ---------- */
+  let S = null;
+
+  function startQuiz(pool, titles) {
+    const ask = radio("ask"), mode = radio("mode"), countVal = radio("count");
+    store.set("ask", ask); store.set("mode", mode); store.set("count", countVal);
+    const n = countVal === "all" ? pool.length : Math.min(+countVal, pool.length);
+    S = { ask, mode, askMap: ask !== "game", askGame: ask !== "map",
+          // Only titles ticked in the lobby are offered as answers.
+          titles: TITLES.map(([t]) => t).filter(t => titles.includes(t)),
+          items: shuffle(pool.slice()).slice(0, n), i: 0, score: 0, streak: 0, best: 0,
+          mapPts: 0, gameRight: 0, log: [], answered: false, pick: { map: null, game: null } };
+    S.perQ = (S.askMap ? 1 : 0) + (S.askGame ? 1 : 0);
+    show("quiz");
+    renderQuestion();
+  }
+
+  function renderQuestion() {
+    const item = S.items[S.i];
+    S.answered = false;
+    S.pick = { map: null, game: null };
+    $("mm").src = item.img;
+    $("mm-tag").textContent = `#${S.i + 1}`;
+    const size = item.size || "core";
+    $("mm-size").className = "size-tag " + size;
+    $("mm-size").textContent = SIZE_LABEL[size];
+    $("feedback").hidden = true;
+    $("submit").textContent = "Lock in";
+    $("map-h").textContent = S.askMap ? "Map name" : "Map";
+    $("game-h").textContent = S.askGame ? "Call of Duty title" : "Game";
+    updateHud();
+
+    const givenMap = `<div class="given">${esc(item.map)}</div>`;
+    const givenGame = `<div class="given">${esc(label(item.game))}</div>`;
+    const hints = [];
+
+    if (S.mode === "mc") {
+      S.mapOpts = S.askMap ? mapChoices(item) : [];
+      S.gameOpts = S.askGame ? gameChoices(item) : [];
+      $("map-answer").innerHTML = S.askMap ? `<div class="choices">${S.mapOpts.map((o, k) =>
+        `<button class="choice" data-kind="map" data-v="${esc(o)}"><span class="k">${k + 1}</span>${esc(o)}</button>`).join("")}</div>` : givenMap;
+      $("game-answer").innerHTML = S.askGame ? `<div class="choices">${S.gameOpts.map((o, k) =>
+        `<button class="choice" data-kind="game" data-v="${esc(o)}"><span class="k">${S.askMap ? "QWER"[k] : k + 1}</span>${esc(short(o))}<span class="yr-inline">${YEAR[o]}</span></button>`).join("")}</div>` : givenGame;
+      if (S.askMap) hints.push("1–4 map");
+      if (S.askGame) hints.push(S.askMap ? "Q–R game" : "1–4 game");
+      $("submit").disabled = true;
+    } else {
+      $("map-answer").innerHTML = S.askMap
+        ? `<input class="text-in" id="map-in" autocomplete="off" spellcheck="false" placeholder="Type the map name…">` : givenMap;
+      $("game-answer").innerHTML = S.askGame
+        ? `<select class="text-in" id="game-in"><option value="">Choose a game…</option>${
+            S.titles.map(t => `<option value="${esc(t)}">${esc(label(t))}</option>`).join("")}</select>` : givenGame;
+      (S.askMap ? $("map-in") : $("game-in")).focus();
+      $("submit").disabled = false;
+    }
+    hints.push("Enter");
+    $("keys-hint").textContent = hints.join(" · ");
+  }
+
+  function mapChoices(item) {
+    // Distractors favour the same game so the guess has to come from the layout, not the era.
+    const names = new Set([item.map]);
+    const pool = MAPS.filter(inPool);
+    const same = shuffle(pool.filter(m => m.game === item.game && m.map !== item.map).map(m => m.map));
+    const other = shuffle(pool.filter(m => m.map !== item.map).map(m => m.map));
+    for (const n of [...same.slice(0, 2), ...other]) { if (names.size >= 4) break; names.add(n); }
+    return shuffle([...names]);
+  }
+
+  function gameChoices(item) {
+    // Any selected title the map shipped in is correct; show at most one alternate so the rest stay wrong.
+    const valid = validGames(item).filter(g => S.titles.includes(g));
+    const opts = new Set([item.game]);
+    const alt = shuffle(valid.filter(g => g !== item.game))[0];
+    if (alt) opts.add(alt);
+    const wrong = S.titles.filter(t => !valid.includes(t));
+    const near = shuffle(wrong.filter(t => Math.abs(YEAR[t] - item.year) <= 4));
+    for (const g of [...near, ...shuffle(wrong)]) { if (opts.size >= 4) break; opts.add(g); }
+    return shuffle([...opts]);
+  }
+
+  function submit() {
+    if (S.answered) return next();
+    const item = S.items[S.i];
+    let mapGuess = null, gameGuess = null;
+    if (S.mode === "mc") {
+      mapGuess = S.pick.map; gameGuess = S.pick.game;
+      if ((S.askMap && mapGuess == null) || (S.askGame && gameGuess == null)) return;
+    } else {
+      if (S.askMap) mapGuess = $("map-in").value.trim();
+      if (S.askGame) gameGuess = $("game-in").value;
+    }
+    const mapRes = !S.askMap ? null
+      : S.mode === "mc" ? { pts: mapGuess === item.map ? 1 : 0 } : gradeMap(mapGuess, item.map);
+    const gameOk = S.askGame ? validGames(item).includes(gameGuess) : null;
+    const pts = (mapRes ? mapRes.pts : 0) + (gameOk ? 1 : 0);
+    S.score += pts;
+    if (mapRes) S.mapPts += mapRes.pts;
+    if (gameOk) S.gameRight++;
+    S.streak = pts === S.perQ ? S.streak + 1 : 0;
+    S.best = Math.max(S.best, S.streak);
+    S.log.push({ item, mapGuess, gameGuess, mapRes, gameOk, pts });
+    S.answered = true;
+
+    if (S.mode === "mc") {
+      document.querySelectorAll(".choice").forEach(b => {
+        b.disabled = true;
+        const v = b.dataset.v;
+        const correct = b.dataset.kind === "map" ? v === item.map : validGames(item).includes(v);
+        if (correct) b.classList.add("right");
+        else if (b.classList.contains("sel")) b.classList.add("wrong");
+      });
+    } else {
+      if (S.askMap) {
+        $("map-in").classList.add(mapRes.pts === 1 ? "right" : mapRes.pts > 0 ? "close" : "wrong");
+        $("map-in").disabled = true;
+      }
+      if (S.askGame) {
+        $("game-in").classList.add(gameOk ? "right" : "wrong");
+        $("game-in").disabled = true;
+      }
+    }
+
+    const verdict = pts === S.perQ ? "Nailed it" : pts > 0 ? "Partly right" : "Not this time";
+    const fb = $("feedback");
+    fb.className = "feedback " + (pts === S.perQ ? "all" : pts > 0 ? "half" : "none");
+    fb.innerHTML = `
+      <div class="sub">${verdict} · +${fmt(pts)}${mapRes?.note ? ` · ${mapRes.note}` : ""}</div>
+      <div class="ans">${esc(item.map)}</div>
+      <div class="sub">${M.from} from ${esc(label(item.game))} · <a href="${item.source}" target="_blank" rel="noopener">${M.src}</a></div>
+      ${S.askGame && alsoIn(item) ? `<div class="sub">Also accepted: ${alsoIn(item)}</div>` : ""}`;
+    fb.hidden = false;
+    $("submit").disabled = false;
+    $("submit").textContent = S.i + 1 < S.items.length ? "Next" : "See results";
+    $("submit").focus();
+    updateHud();
+  }
+
+  function next() {
+    if (S.i + 1 >= S.items.length) return showResults();
+    S.i++;
+    renderQuestion();
+  }
+
+  function updateHud() {
+    $("hud-q").textContent = `${S.i + 1}/${S.items.length}`;
+    $("hud-score").textContent = `${fmt(S.score)}/${S.items.length * S.perQ}`;
+    $("hud-streak").textContent = S.streak;
+    $("bar").style.width = `${((S.i + (S.answered ? 1 : 0)) / S.items.length) * 100}%`;
+  }
+
+  function showResults() {
+    const n = S.items.length, total = n * S.perQ;
+    const pct = Math.round((S.score / total) * 100);
+    $("final-score").innerHTML = `${pct}% <small>${fmt(S.score)} / ${total} pts</small>`;
+    $("final-stats").innerHTML = [
+      S.askMap && `<div><b>${fmt(S.mapPts)}/${n}</b>maps</div>`,
+      S.askGame && `<div><b>${S.gameRight}/${n}</b>titles</div>`,
+      `<div><b>${S.best}</b>best streak</div>`,
+    ].filter(Boolean).join("");
+    const missed = S.log.filter(l => l.pts < S.perQ);
+    $("review-title").textContent = missed.length ? `Missed (${missed.length})` : "Flawless run";
+    $("retry-missed").hidden = !missed.length;
+    $("review").innerHTML = missed.map(l => `
+      <div class="card">
+        <div class="thumb${M.wide ? " wide" : ""}"><img src="${l.item.img}" alt="" loading="lazy"></div>
+        <div class="meta">
+          <b>${esc(l.item.map)}</b>
+          <div class="g">${esc(label(l.item.game))}</div>
+          ${alsoIn(l.item) ? `<div class="g">also: ${alsoIn(l.item)}</div>` : ""}
+          ${l.mapRes && l.mapRes.pts < 1 ? `<div class="you">you: ${esc(l.mapGuess || "—")}${l.mapRes.pts ? " (½)" : ""}</div>` : ""}
+          ${l.gameOk === false ? `<div class="you">you: ${esc(l.gameGuess ? label(l.gameGuess) : "—")}</div>` : ""}
+        </div>
+      </div>`).join("");
+    S.missed = missed.map(l => l.item);
+    show("results");
+  }
+
+  function show(name) {
+    ["home", "setup", "quiz", "results", "daily"].forEach(s => $("screen-" + s).hidden = s !== name);
+    $("hud").hidden = name !== "quiz";
+    $("home-btn").hidden = name === "home" || name === "quiz";
+    window.scrollTo(0, 0);
+  }
+
+  /* ---------- events ---------- */
+  $("start").addEventListener("click", () => {
+    const sel = checkedGames();
+    startQuiz(MAPS.filter(m => inPool(m) && sel.includes(m.game)), sel);
+  });
+  $("again").addEventListener("click", () => { show("setup"); refreshSetup(); });
+  $("retry-missed").addEventListener("click", () => {
+    document.querySelector("input[name=count][value=all]").checked = true;
+    startQuiz(S.missed, S.titles);
+  });
+  $("quit").addEventListener("click", () => S.log.length ? showResults() : show("setup"));
+  $("home-btn").addEventListener("click", goHome);
+  $("submit").addEventListener("click", submit);
+
+  document.addEventListener("click", e => {
+    const b = e.target.closest(".choice");
+    if (!b || S?.answered) return;
+    choose(b.dataset.kind, b.dataset.v);
+  });
+
+  function choose(kind, v) {
+    S.pick[kind] = v;
+    document.querySelectorAll(`.choice[data-kind="${kind}"]`).forEach(x => x.classList.toggle("sel", x.dataset.v === v));
+    $("submit").disabled = (S.askMap && !S.pick.map) || (S.askGame && !S.pick.game);
+  }
+
+  document.addEventListener("keydown", e => {
+    if (!$("screen-daily").hidden && e.key === "Enter" && !$("d-play").hidden) {
+      if (e.target.tagName === "A" || (e.target.tagName === "BUTTON" && e.target.id !== "d-submit")) return;
+      e.preventDefault();
+      // Enter in the map box (often picking an autocomplete suggestion) moves on to the game first.
+      if (e.target.id === "d-map" && !D.answered && !$("d-game").value) return $("d-game").focus();
+      if (!$("d-submit").disabled) dailySubmit();
+      return;
+    }
+    if ($("screen-quiz").hidden) return;
+    if (e.key === "Enter") {
+      if (e.target.tagName === "BUTTON" && e.target.id !== "submit") return;
+      e.preventDefault();
+      if (!$("submit").disabled) submit();
+      return;
+    }
+    if (S.mode !== "mc" || S.answered || e.ctrlKey || e.metaKey || e.altKey) return;
+    const num = "1234".indexOf(e.key), qwer = "qwer".indexOf(e.key.toLowerCase());
+    if (S.askMap && num >= 0 && S.mapOpts[num]) choose("map", S.mapOpts[num]);
+    if (S.askGame && S.askMap && qwer >= 0 && S.gameOpts[qwer]) choose("game", S.gameOpts[qwer]);
+    if (S.askGame && !S.askMap && num >= 0 && S.gameOpts[num]) choose("game", S.gameOpts[num]);
+  });
+
+  /* ---------- daily ---------- */
+  // The server (netlify/functions/daily) picks the maps, holds the answers and grades each guess once.
+  // The page only learns an answer after it has been graded.
+  const D = { st: null, offset: 0, timer: null, answered: false };
+  const SQUARE = { green: "🟩", yellow: "🟨", red: "🟥" };
+  const VERDICT = { green: "Nailed it", yellow: "Partly right", red: "Not this time" };
+
+  async function dailyApi(path = "", body) {
+    const r = await fetch("/api/daily" + path, body
+      ? { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }
+      : { cache: "no-store" });
+    const data = await r.json();
+    if (!r.ok && !data.results) throw new Error(data.error || r.status);
+    return data;
+  }
+
+  const squares = (st, cur) => Array.from({ length: st.count }, (_, i) =>
+    `<i class="${st.results[i]?.colour || (i === cur ? "now" : "")}"></i>`).join("");
+  const dailyPts = st => st.results.reduce((s, r) => s + r.mapPts + (r.gameOk ? 1 : 0), 0);
+  const gameLabel = g => (YEAR[g] ? label(g) : g);
+
+  function setDaily(st) {
+    D.st = st;
+    D.offset = st.now - Date.now();  // count down on the server's clock, not the device's
+    const done = st.results.length >= st.count;
+    $("daily-card").disabled = false;
+    $("daily-no").textContent = "#" + st.day;
+    $("daily-preview").innerHTML = squares(st);
+    $("daily-go").textContent = done ? "See result" : st.results.length ? "Continue" : "Play";
+    if (done) recordDaily(st);
+  }
+
+  dailyApi().then(setDaily).catch(() => {
+    $("daily-blurb").textContent = location.protocol === "file:"
+      ? "The daily runs on the website (codmapquiz.com), not from a local copy."
+      : "Couldn't load today's daily. Try refreshing in a moment.";
+    $("daily-go").hidden = true;
+  });
+
+  function openDaily() {
+    $("brand-title").textContent = "Daily Challenge";
+    $("pool-count").textContent = "";
+    $("d-title").textContent = `Daily #${D.st.day}`;
+    $("d-names").innerHTML = [...new Set(MODES.minimap.data.map(m => m.map))].sort()
+      .map(n => `<option value="${esc(n)}">`).join("");
+    $("d-game").innerHTML = `<option value="">Choose a game…</option>` +
+      TITLES.map(([t]) => `<option value="${esc(t)}">${esc(label(t))}</option>`).join("");
+    show("daily");
+    renderDaily();
+  }
+  $("daily-card").addEventListener("click", openDaily);
+
+  function renderDaily() {
+    const st = D.st, i = st.results.length, done = i >= st.count;
+    $("d-squares").innerHTML = squares(st, i);
+    $("d-play").hidden = done;
+    $("d-done").hidden = !done;
+    if (done) return renderDailyDone();
+    D.answered = false;
+    $("d-img").src = `/api/daily/img/${st.day}/${i}`;
+    $("d-tag").textContent = `${i + 1} / ${st.count}`;
+    for (const id of ["d-map", "d-game"]) { $(id).value = ""; $(id).disabled = false; $(id).className = "text-in"; }
+    $("d-feedback").hidden = true;
+    $("d-submit").textContent = "Lock in";
+    $("d-submit").disabled = false;
+    $("d-map").focus();
+  }
+
+  async function dailySubmit() {
+    if (D.answered) return renderDaily();
+    const i = D.st.results.length;
+    $("d-submit").disabled = true;
+    let st;
+    try {
+      st = await dailyApi("/guess", { day: D.st.day, i, map: $("d-map").value.trim(), game: $("d-game").value });
+    } catch {
+      $("d-submit").disabled = false;
+      const fb = $("d-feedback");
+      fb.className = "feedback red";
+      fb.innerHTML = `<div class="sub">Couldn't reach the server. Your guess wasn't counted, so try again.</div>`;
+      fb.hidden = false;
+      return;
+    }
+    if (st.error === "new-day") {
+      setDaily(st);
+      return openDaily();
+    }
+    setDaily(st);
+    const res = st.results[i];
+    if (!res) return renderDaily();
+    D.answered = true;
+    const a = res.answer;
+    $("d-map").classList.add(res.mapPts === 1 ? "right" : res.mapPts ? "close" : "wrong");
+    $("d-game").classList.add(res.gameOk ? "right" : "wrong");
+    $("d-map").disabled = $("d-game").disabled = true;
+    $("d-squares").innerHTML = squares(st);
+    const fb = $("d-feedback");
+    fb.className = "feedback " + res.colour;
+    fb.innerHTML = `
+      <div class="sub">${VERDICT[res.colour]}${st.note ? ` · ${esc(st.note)}` : ""}</div>
+      <div class="ans">${esc(a.map)}</div>
+      <div class="sub">Minimap from ${esc(label(a.game))} · <a href="${a.source}" target="_blank" rel="noopener">wiki</a></div>
+      ${alsoIn(a) ? `<div class="sub">Also accepted: ${alsoIn(a)}</div>` : ""}`;
+    fb.hidden = false;
+    $("d-submit").textContent = i + 1 < st.count ? "Next" : "See result";
+    $("d-submit").disabled = false;
+    $("d-submit").focus();
+  }
+  $("d-submit").addEventListener("click", dailySubmit);
+
+  function renderDailyDone() {
+    const st = D.st;
+    $("d-score").innerHTML = `${fmt(dailyPts(st))} <small>/ ${st.count * 2} pts</small>`;
+    $("d-final").innerHTML = squares(st);
+    const s = dailyStats(st.day);
+    $("d-stats").innerHTML = `<div><b>${s.played}</b>played</div><div><b>${s.streak}</b>streak</div>
+      <div><b>${s.best}</b>best streak</div><div><b>${s.avg}</b>avg pts</div>`;
+    $("d-review").innerHTML = st.results.map(r => {
+      const a = r.answer;
+      return `
+      <div class="card ${r.colour}">
+        <div class="thumb"><img src="${a.img}" alt="" loading="lazy"></div>
+        <div class="meta">
+          <b>${esc(a.map)}</b>
+          <div class="g">${esc(label(a.game))}</div>
+          ${alsoIn(a) ? `<div class="g">also: ${alsoIn(a)}</div>` : ""}
+          ${r.mapPts < 1 ? `<div class="${r.mapPts ? "half" : "you"}">you: ${esc(r.mapGuess || "—")}${r.mapPts ? " (½)" : ""}</div>` : ""}
+          ${!r.gameOk ? `<div class="you">you: ${esc(r.gameGuess ? gameLabel(r.gameGuess) : "—")}</div>` : ""}
+          ${r.colour === "green" ? `<div class="ok">✓ both right</div>` : ""}
+        </div>
+      </div>`;
+    }).join("");
+    clearInterval(D.timer);
+    tick();
+    D.timer = setInterval(tick, 1000);
+  }
+
+  function tick() {
+    if ($("screen-daily").hidden) return clearInterval(D.timer);
+    const left = D.st.nextReset - (Date.now() + D.offset);
+    if (left > 0) {
+      const pad = n => String(n).padStart(2, "0");
+      $("d-next").textContent = `Next daily in ${Math.floor(left / 36e5)}:${pad(Math.floor(left / 6e4) % 60)}:${pad(Math.floor(left / 1e3) % 60)}`;
+      return;
+    }
+    clearInterval(D.timer);
+    $("d-next").innerHTML = `New maps are up. <button class="btn small" id="d-new">Play today's daily</button>`;
+    $("d-new").addEventListener("click", () => dailyApi().then(st => { setDaily(st); openDaily(); }));
+  }
+
+  $("d-share").addEventListener("click", async () => {
+    const st = D.st;
+    const text = `CoD Map Quiz Daily #${st.day} · ${fmt(dailyPts(st))}/${st.count * 2}\n` +
+      `${st.results.map(r => SQUARE[r.colour]).join("")}\n${location.origin}`;
+    try {
+      if (navigator.share && matchMedia("(pointer: coarse)").matches) return await navigator.share({ text });
+      await navigator.clipboard.writeText(text);
+      $("d-share").textContent = "Copied!";
+      setTimeout(() => $("d-share").textContent = "Share result", 2000);
+    } catch (e) {
+      if (e?.name !== "AbortError") window.prompt("Copy your result:", text);
+    }
+  });
+
+  // Personal history stays in this browser: { dailyNumber: points }.
+  const readDaily = () => { try { return JSON.parse(localStorage.getItem("daily:scores")) || {}; } catch { return {}; } };
+  function recordDaily(st) {
+    const all = readDaily();
+    if (st.day in all) return;
+    all[st.day] = dailyPts(st);
+    try { localStorage.setItem("daily:scores", JSON.stringify(all)); } catch {}
+  }
+  function dailyStats(today) {
+    const all = readDaily(), days = Object.keys(all).map(Number).sort((a, b) => a - b);
+    let best = 0, run = 0;
+    days.forEach((d, k) => { run = k && d === days[k - 1] + 1 ? run + 1 : 1; best = Math.max(best, run); });
+    let streak = 0;
+    for (let d = all[today] != null ? today : today - 1; all[d] != null; d--) streak++;
+    const avg = days.length ? days.reduce((s, d) => s + all[d], 0) / days.length : 0;
+    return { played: days.length, streak, best, avg: fmt(Math.round(avg * 10) / 10) };
+  }
+
+  /* ---------- spelling ---------- */
+  const FILLER = new Set(["the", "st", "saint", "uss", "el", "al", "las", "du", "de", "la", "of", "and"]);
+  let ALL_NAMES = [];  // set per mode in enterMode
+
+  function words(s) {
+    return s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/&/g, " and ")
+      .replace(/[^a-z0-9]+/g, " ").trim().split(" ").filter(Boolean);
+  }
+  function norm(s) { return words(s).join(""); }
+  function core(s) { return words(s).filter(w => !FILLER.has(w)).join(""); }
+  // Rough sound-alike key: "Skidrowe", "Hyjacked", "Zarkwa" collapse to the same thing as the real name.
+  function sound(s) {
+    return norm(s).replace(/ph/g, "f").replace(/ck|q|c(?=[aou]|$)/g, "k").replace(/c/g, "s").replace(/z/g, "s")
+      .replace(/x/g, "ks").replace(/y/g, "i").replace(/h(?![aeiou])/g, "").replace(/([a-z])\1+/g, "$1")
+      .replace(/(?!^)[aeiou]/g, "");
+  }
+  const tolerance = len => len >= 12 ? 3 : len >= 8 ? 2 : len >= 5 ? 1 : 0;
+  const near = (a, b) => lev(a, b) <= tolerance(b.length);
+
+  // Returns { pts: 1 | 0.5 | 0, note }.
+  function gradeMap(guess, answer) {
+    const g = norm(guess), a = norm(answer);
+    if (!g) return { pts: 0 };
+    if (g === a) return { pts: 1 };
+    // Never credit a guess that is (or is a near-miss of) a different map's name, e.g. "Carbon" for Cargo.
+    const dist = lev(g, a);
+    if (ALL_NAMES.some(n => n !== a && lev(g, n) < dist && near(g, n))) return { pts: 0 };
+    if (near(g, a) || (a.length >= 5 && sound(guess) === sound(answer)) || (core(guess) && near(core(guess), core(answer))))
+      return { pts: 1, note: "spelling accepted" };
+    // Part of a multi-word name: "Zarqwa" for Zarqwa Hydroelectric, "Santa Sena" for Santa Seña Border Crossing.
+    const ws = words(answer).filter(w => !FILLER.has(w)), runs = [];
+    for (let i = 0; i < ws.length; i++)
+      for (let j = i + 1; j <= ws.length; j++) if (j - i < ws.length) runs.push(ws.slice(i, j).join(""));
+    if (runs.some(r => r.length >= 5 && (near(g, r) || sound(guess) === sound(r))))
+      return { pts: 0.5, note: "half credit, partial name" };
+    if (a.length >= 5 && (1 - dist / Math.max(g.length, a.length) >= 0.6 || lev(sound(guess), sound(answer)) <= 1))
+      return { pts: 0.5, note: "half credit, close spelling" };
+    return { pts: 0 };
+  }
+
+  /* ---------- helpers ---------- */
+  function alsoIn(item) {
+    return validGames(item).filter(g => g !== item.game).map(g => esc(label(g))).join(", ");
+  }
+  function fmt(n) { return Number.isInteger(n) ? String(n) : n.toFixed(1); }
+  function shuffle(a) {
+    for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+    return a;
+  }
+  function lev(a, b) {
+    const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+    for (let j = 1; j <= b.length; j++) d[0][j] = j;
+    for (let i = 1; i <= a.length; i++)
+      for (let j = 1; j <= b.length; j++)
+        d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    return d[a.length][b.length];
+  }
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  }
+})();
+</script>
+</body>
+</html>
